@@ -1,4 +1,7 @@
 import { createInterface } from "readline";
+import { constants } from "fs/promises";
+import path from "path";
+import { accessSync } from "fs";
 
 const rl = createInterface({
   input: process.stdin,
@@ -8,22 +11,56 @@ const rl = createInterface({
 
 rl.prompt();
 
-const BUILT_IN_COMMANDS = ["exit", "type", "echo"];
+type Executable = (...args: string[]) => void;
 
-rl.on("line", (command) => {
-  if (command === "exit") {
-    rl.close();
-    return;
-  } else if (command.startsWith("echo ")) {
-    console.log(command.slice(5));
-  } else if (command.startsWith("type ")) {
-    const argsAfterType = command.slice(5);
+const commands: Record<string, Executable> = {
+  exit: (..._args) => process.exit(0),
+  echo: (...args) => console.log(args.join(" ")),
+  type: (...args) => {
+    const [command] = args;
 
-    if (BUILT_IN_COMMANDS.includes(argsAfterType)) {
-      console.log(`${argsAfterType} is a shell builtin`);
+    if (!command) return console.log("null: not found");
+
+    if (commands[command]) {
+      console.log(`${command} is a shell builtin`);
     } else {
-      console.log(`${argsAfterType}: not found`);
+      const dirPath = process.env.PATH;
+
+      if (!dirPath) return "Please provide a PATH env variable!";
+
+      const directories = dirPath
+        .split(path.delimiter)
+        .map((item) => item.trim());
+
+      let foundPath: string | null = null;
+
+      for (const dir of directories) {
+        const fullPath = path.join(dir, command);
+
+        try {
+          accessSync(fullPath, constants.X_OK);
+
+          foundPath = fullPath;
+        } catch (err) {
+          // Doesn't exist or its not executable, continue!
+        }
+      }
+
+      if (foundPath) {
+        console.log(`${command} is ${foundPath}`);
+        return;
+      }
+
+      console.log(`${command}: not found`);
     }
+  },
+};
+
+rl.on("line", (input) => {
+  const [command, ...args] = input.split(" ");
+
+  if (commands[command]) {
+    commands[command](...args);
   } else {
     console.log(`${command}: command not found`);
   }

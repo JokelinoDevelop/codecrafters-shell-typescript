@@ -37,8 +37,24 @@ const commands: Record<string, Executable> = {
     console.log(process.cwd());
   },
   cd: (...args) => {
+    const firstArg = args[0];
+
+    const isHome = firstArg === "~";
+
+    const homePath = process.env.HOME;
+
+    // early check for HOME env variable
+    if (isHome && homePath === undefined) {
+      console.log(
+        "HOME env variable is missing, please provide it so the ~ command can work!",
+      );
+      return;
+    }
+
+    const dirPath = isHome ? homePath! : firstArg;
+
     try {
-      process.chdir(args[0]);
+      process.chdir(dirPath);
     } catch (err) {
       console.log(`cd: ${args[0]}: No such file or directory`);
     }

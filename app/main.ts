@@ -1,6 +1,7 @@
 import { createInterface } from "readline";
 import { execSync } from "node:child_process";
 import { findExecutable } from "./utils";
+import path from "path";
 
 const rl = createInterface({
   input: process.stdin,
@@ -32,6 +33,14 @@ const commands: Record<string, Executable> = {
 
       console.log(`${command}: not found`);
     }
+  },
+  pwd: (..._args) => {
+    const pwdArr = import.meta.dir.split("/");
+    pwdArr.pop();
+
+    const pwdPath = pwdArr.join("/");
+
+    console.log(pwdPath);
   },
 };
 

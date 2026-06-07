@@ -89,7 +89,7 @@ rl.on("line", (input) => {
     // we found executable file
     if (foundPath) {
       // execute the program
-      execFile(foundPath, [...args], (error, stdout) => {
+      execFile(command, [...args], (error, stdout) => {
         if (error) {
           console.log(error.message);
           return;

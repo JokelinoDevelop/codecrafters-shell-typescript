@@ -2,7 +2,7 @@ import { createInterface } from "readline";
 import { constants } from "fs/promises";
 import path from "path";
 import { accessSync } from "fs";
-import { execFile } from "node:child_process";
+import { execFile, execSync } from "node:child_process";
 
 const rl = createInterface({
   input: process.stdin,
@@ -89,14 +89,7 @@ rl.on("line", (input) => {
     // we found executable file
     if (foundPath) {
       // execute the program
-      execFile(command, [...args], (error, stdout) => {
-        if (error) {
-          console.log(error.message);
-          return;
-        }
-        console.log(stdout);
-        rl.prompt();
-      });
+      execSync(input, { stdio: "inherit" });
     } else {
       console.log(`${command}: command not found`);
     }

@@ -1,7 +1,6 @@
 import { createInterface } from "readline";
 import { execSync } from "node:child_process";
 import { findExecutable } from "./utils";
-import path from "path";
 
 const rl = createInterface({
   input: process.stdin,
@@ -35,12 +34,14 @@ const commands: Record<string, Executable> = {
     }
   },
   pwd: (..._args) => {
-    const pwdArr = import.meta.dir.split("/");
-    pwdArr.pop();
-
-    const pwdPath = pwdArr.join("/");
-
-    console.log(pwdPath);
+    console.log(process.cwd());
+  },
+  cd: (...args) => {
+    try {
+      process.chdir(args[0]);
+    } catch (err) {
+      console.log(`cd: ${args[0]}: No such file or directory`);
+    }
   },
 };
 

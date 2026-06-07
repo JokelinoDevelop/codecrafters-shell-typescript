@@ -94,13 +94,12 @@ rl.on("line", (input) => {
           console.log(error.message);
           return;
         }
-
         console.log(stdout);
+        rl.prompt();
       });
-      return;
+    } else {
+      console.log(`${command}: command not found`);
     }
-
-    console.log(`${command}: command not found`);
   }
 
   rl.prompt();

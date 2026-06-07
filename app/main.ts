@@ -1,8 +1,6 @@
 import { createInterface } from "readline";
-import { constants } from "fs/promises";
-import path from "path";
-import { accessSync } from "fs";
-import { execFile, execSync } from "node:child_process";
+import { execSync } from "node:child_process";
+import { findExecutable } from "./utils";
 
 const rl = createInterface({
   input: process.stdin,
@@ -25,27 +23,7 @@ const commands: Record<string, Executable> = {
     if (commands[command]) {
       console.log(`${command} is a shell builtin`);
     } else {
-      const dirPath = process.env.PATH;
-
-      if (!dirPath) return "Please provide a PATH env variable!";
-
-      const directories = dirPath
-        .split(path.delimiter)
-        .map((item) => item.trim());
-
-      let foundPath: string | null = null;
-
-      for (const dir of directories) {
-        const fullPath = path.join(dir, command);
-
-        try {
-          accessSync(fullPath, constants.X_OK);
-
-          foundPath = fullPath;
-        } catch (err) {
-          // Doesn't exist or its not executable, continue!
-        }
-      }
+      const foundPath = findExecutable(command);
 
       if (foundPath) {
         console.log(`${command} is ${foundPath}`);
@@ -63,28 +41,7 @@ rl.on("line", (input) => {
   if (commands[command]) {
     commands[command](...args);
   } else {
-    // check if command is executable
-    const dirPath = process.env.PATH;
-
-    if (!dirPath) return "Please provide a PATH env variable!";
-
-    const directories = dirPath
-      .split(path.delimiter)
-      .map((item) => item.trim());
-
-    let foundPath: string | null = null;
-
-    for (const dir of directories) {
-      const fullPath = path.join(dir, command);
-
-      try {
-        accessSync(fullPath, constants.X_OK);
-
-        foundPath = fullPath;
-      } catch (err) {
-        // Doesn't exist or its not executable, continue!
-      }
-    }
+    const foundPath = findExecutable(command);
 
     // we found executable file
     if (foundPath) {
